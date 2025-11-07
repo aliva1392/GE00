@@ -1,71 +1,113 @@
-export type PrintQuality = 'bw' | 'color-b' | 'color-c';
-export type PaperSize = 'A5' | 'A4' | 'A3';
-export type SidedType = 'single' | 'double';
-export type BindingType = 'none' | 'spiral' | 'perfect' | 'staple';
-export type CoverType = 'none' | 'clear' | 'matte';
-export type SpiralColor = 'black' | 'white' | 'silver';
+import { PaperSize, PrintQuality, Sided } from "./types";
 
-
-interface Option<T> {
-  value: T;
-  label: string;
-}
-
-export const PRINT_OPTIONS: {
-  printQuality: Option<PrintQuality>[];
-  paperSize: Option<PaperSize>[];
-  sided: Option<SidedType>[];
-} = {
-  printQuality: [
-    { value: 'bw', label: 'سیاه سفید' },
-    { value: 'color-b', label: 'رنگی کلاس B (متن و عکس، بکگراند سفید)' },
-    { value: 'color-c', label: 'رنگی کلاس C (فول رنگ)' },
-  ],
-  paperSize: [
+export const PAPER_SIZE_OPTIONS: { value: PaperSize; label: string }[] = [
     { value: 'A3', label: 'A3' },
     { value: 'A4', label: 'A4' },
     { value: 'A5', label: 'A5' },
-  ],
-  sided: [
+];
+
+export const PRINT_QUALITY_OPTIONS: { value: PrintQuality; label: string }[] = [
+    { value: 'bw', label: 'سیاه سفید' },
+    { value: 'color-b', label: 'رنگی کلاس B (متن و عکس، بکگراند سفید)' },
+    { value: 'color-c', label: 'رنگی کلاس C (فول رنگ)' },
+];
+
+export const SIDED_OPTIONS: { value: Sided, label: string }[] = [
     { value: 'single', label: 'یک رو' },
-    { value: 'double', label: 'دو رو' },
-  ],
-};
+    { value: 'double', label: 'پشت و رو' },
+];
 
-export const BINDING_OPTIONS: {
-  binding: Option<BindingType>[];
-  cover: Option<CoverType>[];
-  spiralColor: Option<SpiralColor>[];
-} = {
-  binding: [
-    { value: 'none', label: 'بدون صحافی' },
-    { value: 'spiral', label: 'سیمی فنری' },
-    { value: 'perfect', label: 'چسب گرم' },
-    { value: 'staple', label: 'منگنه' },
-  ],
-  cover: [
-    { value: 'none', label: 'بدون طلق' },
-    { value: 'clear', label: 'طلق شفاف' },
-    { value: 'matte', label: 'طلق مات' },
-  ],
-  spiralColor: [
-    { value: 'black', label: 'مشکی' },
+export const SERVICE_OPTIONS = [
+    { value: 'none', label: 'هیچکدام' },
+    { value: 'simple', label: 'صحافی ساده' },
+    { value: 'spring', label: 'صحافی فنری' },
+];
+
+export const TALC_TYPE_OPTIONS = [
+    { value: 'none', label: 'هیچکدام' },
+    { value: 'glossy', label: 'طلق و شیت گلاسه' },
+    { value: 'matte', label: 'طلق و شیت مات' },
+];
+
+export const SPRING_COLOR_OPTIONS = [
     { value: 'white', label: 'سفید' },
-    { value: 'silver', label: 'نقره‌ای' },
-  ],
+    { value: 'black', label: 'مشکی' },
+];
+
+export const UPLOAD_METHOD_OPTIONS = [
+    { value: 'upload', label: 'آپلود فایل' },
+    { value: 'whatsapp', label: 'واتساپ' },
+    { value: 'telegram', label: 'تلگرام' },
+    { value: 'link', label: 'لینک' },
+    { value: 'email', label: 'ایمیل' },
+    { value: 'other', label: 'سایر' },
+];
+
+interface PriceTier {
+  min: number;
+  max: number;
+  prices: {
+    single: number;
+    double: number;
+  };
+}
+
+export const TIERED_PRICING: Record<PaperSize, Record<PrintQuality, PriceTier[]>> = {
+    A4: {
+        'bw': [
+            { min: 1, max: 499, prices: { single: 1500, double: 1900 } },
+            { min: 500, max: 999, prices: { single: 1100, double: 1500 } },
+            { min: 1000, max: Infinity, prices: { single: 890, double: 990 } },
+        ],
+        'color-b': [
+            { min: 1, max: 500, prices: { single: 4500, double: 6500 } },
+            { min: 501, max: 1000, prices: { single: 4300, double: 6300 } },
+            { min: 1001, max: Infinity, prices: { single: 3900, double: 5900 } },
+        ],
+        'color-c': [
+            { min: 1, max: 500, prices: { single: 4900, double: 6900 } },
+            { min: 501, max: 1000, prices: { single: 4700, double: 6700 } },
+            { min: 1001, max: Infinity, prices: { single: 4300, double: 6300 } },
+        ],
+    },
+    A3: {
+        'bw': [
+            { min: 1, max: 499, prices: { single: 2600, double: 2980 } },
+            { min: 500, max: 999, prices: { single: 1980, double: 2800 } },
+            { min: 1000, max: Infinity, prices: { single: 1800, double: 2500 } },
+        ],
+        'color-b': [
+            { min: 1, max: 500, prices: { single: 8900, double: 11900 } },
+            { min: 501, max: 1000, prices: { single: 8600, double: 11400 } },
+            { min: 1001, max: Infinity, prices: { single: 7900, double: 10900 } },
+        ],
+        'color-c': [
+            { min: 1, max: 500, prices: { single: 9900, double: 12900 } },
+            { min: 501, max: 1000, prices: { single: 9500, double: 12500 } },
+            { min: 1001, max: Infinity, prices: { single: 8900, double: 11900 } },
+        ],
+    },
+    A5: {
+        'bw': [
+            { min: 1, max: 499, prices: { single: 790, double: 890 } },
+            { min: 500, max: 1000, prices: { single: 750, double: 850 } },
+            { min: 1001, max: Infinity, prices: { single: 690, double: 790 } },
+        ],
+        'color-b': [
+            { min: 1, max: 500, prices: { single: 2000, double: 3000 } },
+            { min: 501, max: 1000, prices: { single: 1800, double: 2800 } },
+            { min: 1001, max: Infinity, prices: { single: 1500, double: 2500 } },
+        ],
+        'color-c': [
+            { min: 1, max: 500, prices: { single: 2700, double: 3800 } },
+            { min: 501, max: 1000, prices: { single: 2500, double: 3600 } },
+            { min: 1001, max: Infinity, prices: { single: 2200, double: 3300 } },
+        ],
+    },
 };
 
-// Pricing in Toman
-export const PRICING = {
-  print: {
-    A5: { bw: 500, 'color-b': 1500, 'color-c': 2250 },
-    A4: { bw: 1000, 'color-b': 3000, 'color-c': 4500 },
-    A3: { bw: 2000, 'color-b': 6000, 'color-c': 9000 },
-  },
-  binding: {
-    none: { base: 0, perPage: 0 },
-    spiral: { base: 15000, perPage: 100 },
-    perfect: { base: 25000, perPage: 150 },
-    staple: { base: 5000, perPage: 0 },
-  },
+
+export const SERVICE_PRICING = {
+    simple: 5000,
+    spring: 10000,
 };
