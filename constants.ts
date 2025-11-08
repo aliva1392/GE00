@@ -52,7 +52,7 @@ interface PriceTier {
   };
 }
 
-export const TIERED_PRICING: Record<PaperSize, Record<PrintQuality, PriceTier[]>> = {
+export const DEFAULT_TIERED_PRICING: Record<PaperSize, Record<PrintQuality, PriceTier[]>> = {
     A4: {
         'bw': [
             { min: 1, max: 499, prices: { single: 1500, double: 1900 } },
@@ -107,7 +107,7 @@ export const TIERED_PRICING: Record<PaperSize, Record<PrintQuality, PriceTier[]>
 };
 
 
-export const SERVICE_PRICING = {
+export const DEFAULT_SERVICE_PRICING = {
     simple: 5000,
     spring: 10000,
 };

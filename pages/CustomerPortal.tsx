@@ -6,7 +6,7 @@ import OrderSummary from '../components/customer/OrderSummary';
 import CartSummary from '../components/customer/CartSummary';
 import AIAssistant from '../components/customer/AIAssistant';
 import { OrderConfig, UploadedFile, CartItem, PaperSize, PrintQuality, Sided } from '../types';
-import { TIERED_PRICING, SERVICE_PRICING } from '../constants';
+import { getPricingConfig } from '../services/pricingService';
 
 const initialConfig: OrderConfig = {
     paperSize: '',
@@ -28,6 +28,7 @@ const CustomerPortal: React.FC = () => {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [costs, setCosts] = useState({ printCost: 0, serviceCost: 0, totalCost: 0, pricePerSheet: 0 });
     const [numberOfSheets, setNumberOfSheets] = useState(0);
+    const [pricing, setPricing] = useState(getPricingConfig());
 
     useEffect(() => {
         const calculateCosts = () => {
@@ -50,7 +51,7 @@ const CustomerPortal: React.FC = () => {
             const sheets = config.sided === 'double' ? Math.ceil(totalPages / 2) : totalPages;
             setNumberOfSheets(sheets);
 
-            const tiers = TIERED_PRICING[config.paperSize as PaperSize]?.[config.printQuality as PrintQuality];
+            const tiers = pricing.tiered[config.paperSize as PaperSize]?.[config.printQuality as PrintQuality];
             if (!tiers) return;
 
             // Calculate price based on the total number of sheets across all series
@@ -63,7 +64,7 @@ const CustomerPortal: React.FC = () => {
             const printCostPerSeries = sheets * pricePerSheet;
             const printCost = printCostPerSeries * config.seriesCount;
             
-            const serviceCostPerSeries = config.service !== 'none' ? SERVICE_PRICING[config.service as keyof typeof SERVICE_PRICING] : 0;
+            const serviceCostPerSeries = config.service !== 'none' ? pricing.services[config.service as keyof typeof pricing.services] : 0;
             const serviceCost = serviceCostPerSeries * config.seriesCount;
             
             const totalCost = printCost + serviceCost;
@@ -72,7 +73,7 @@ const CustomerPortal: React.FC = () => {
         };
 
         calculateCosts();
-    }, [config, files]);
+    }, [config, files, pricing]);
     
     const handleAISuggestion = (suggestion: Partial<OrderConfig>) => {
         setConfig(prev => ({ ...prev, ...suggestion }));

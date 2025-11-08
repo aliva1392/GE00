@@ -54,3 +54,9 @@ export interface Order {
   status: OrderStatus;
   items: CartItem[];
 }
+
+// Types for Authentication
+export interface User {
+  phoneNumber: string;
+  role: 'customer' | 'admin';
+}

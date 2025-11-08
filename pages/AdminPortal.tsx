@@ -3,9 +3,10 @@ import Header from '../components/admin/Header';
 import Sidebar from '../components/admin/Sidebar';
 import Dashboard from '../components/admin/Dashboard';
 import OrderDetails from '../components/admin/OrderDetails';
+import PriceManagement from '../components/admin/PriceManagement';
 
 const AdminPortal: React.FC = () => {
-    const [view, setView] = useState<{ page: 'dashboard' | 'order'; id?: string }>({ page: 'dashboard' });
+    const [view, setView] = useState<{ page: 'dashboard' | 'order' | 'prices'; id?: string }>({ page: 'dashboard' });
     const [pageTitle, setPageTitle] = useState('داشبورد');
 
     useEffect(() => {
@@ -16,7 +17,11 @@ const AdminPortal: React.FC = () => {
             if (orderMatch && orderMatch[1]) {
                 setView({ page: 'order', id: orderMatch[1] });
                 setPageTitle(`جزئیات سفارش - ${orderMatch[1]}`);
-            } else {
+            } else if (hash === '#/admin/prices') {
+                 setView({ page: 'prices' });
+                 setPageTitle('مدیریت قیمت‌ها');
+            }
+            else {
                 setView({ page: 'dashboard' });
                 setPageTitle('داشبورد');
             }
@@ -34,6 +39,8 @@ const AdminPortal: React.FC = () => {
         switch (view.page) {
             case 'order':
                 return view.id ? <OrderDetails orderId={view.id} /> : <Dashboard />;
+            case 'prices':
+                return <PriceManagement />;
             case 'dashboard':
             default:
                 return <Dashboard />;
