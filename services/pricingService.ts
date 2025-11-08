@@ -5,12 +5,14 @@ interface PriceTier {
   min: number;
   max: number;
   prices: {
-    [key in Sided]: number;
+    // FIX: Excluded empty string from Sided type to match the data structure which only contains 'single' and 'double'.
+    [key in Exclude<Sided, ''>]: number;
   };
 }
 
 export interface PricingConfig {
-    tiered: Record<PaperSize, Record<PrintQuality, PriceTier[]>>;
+    // FIX: Excluded empty strings from PaperSize and PrintQuality to match the stricter type of DEFAULT_TIERED_PRICING.
+    tiered: Record<Exclude<PaperSize, ''>, Record<Exclude<PrintQuality, ''>, PriceTier[]>>;
     services: {
         [key in Exclude<Service, 'none'>]: number
     };

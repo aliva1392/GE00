@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { getPricingConfig, savePricingConfig, PricingConfig } from '../../services/pricingService';
 import { PAPER_SIZE_OPTIONS, PRINT_QUALITY_OPTIONS } from '../../constants';
 import { produce } from 'immer';
+// FIX: Import types to be used in function signature.
+import { PaperSize, PrintQuality } from '../../types';
 
 const PriceManagement: React.FC = () => {
     const [pricing, setPricing] = useState<PricingConfig | null>(null);
@@ -12,7 +14,8 @@ const PriceManagement: React.FC = () => {
         setPricing(getPricingConfig());
     }, []);
 
-    const handleTieredPriceChange = (paperSize: string, quality: string, tierIndex: number, side: 'single' | 'double', value: string) => {
+    // FIX: Updated function signature with specific types to prevent indexing errors.
+    const handleTieredPriceChange = (paperSize: Exclude<PaperSize, ''>, quality: Exclude<PrintQuality, ''>, tierIndex: number, side: 'single' | 'double', value: string) => {
         if (!pricing) return;
         
         const nextState = produce(pricing, draft => {

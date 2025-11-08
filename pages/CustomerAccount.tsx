@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/customer/Header';
 import { useAuth } from '../contexts/AuthContext';
-import { Order, OrderStatus } from '../types';
+import { Order, OrderStatus, Address } from '../types';
 import { getOrdersForUser } from '../services/orderService';
+import AddressModal from '../components/customer/AddressModal';
+import { produce } from 'immer';
 
 const StatusBadge: React.FC<{ status: OrderStatus }> = ({ status }) => {
     const statusStyles = {
@@ -29,9 +31,11 @@ const StatCard: React.FC<{title: string, value: number, icon: React.ReactNode}> 
 
 
 const CustomerAccount: React.FC = () => {
-    const { user } = useAuth();
+    const { user, updateUserData } = useAuth();
     const [orders, setOrders] = useState<Order[]>([]);
     const [stats, setStats] = useState({ total: 0, processing: 0, completed: 0 });
+    const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+    const [addressToEdit, setAddressToEdit] = useState<Address | null>(null);
 
     useEffect(() => {
         if (user) {
@@ -46,9 +50,52 @@ const CustomerAccount: React.FC = () => {
         }
     }, [user]);
 
+    const handleOpenAddModal = () => {
+        setAddressToEdit(null);
+        setIsAddressModalOpen(true);
+    };
+
+    const handleOpenEditModal = (address: Address) => {
+        setAddressToEdit(address);
+        setIsAddressModalOpen(true);
+    };
+
+    const handleSaveAddress = (address: Address) => {
+        if (!user) return;
+        
+        const nextUser = produce(user, draft => {
+             const existingIndex = draft.addresses.findIndex(a => a.id === address.id);
+             if (existingIndex > -1) {
+                draft.addresses[existingIndex] = address;
+             } else {
+                draft.addresses.push(address);
+             }
+        });
+
+        updateUserData(nextUser);
+        setIsAddressModalOpen(false);
+    };
+    
+    const handleDeleteAddress = (addressId: string) => {
+        if (!user || !window.confirm("آیا از حذف این آدرس اطمینان دارید؟")) return;
+
+        const nextUser = produce(user, draft => {
+            draft.addresses = draft.addresses.filter(a => a.id !== addressId);
+        });
+
+        updateUserData(nextUser);
+    }
+
     return (
         <div className="bg-gray-900 text-white min-h-screen font-sans">
             <Header />
+            {isAddressModalOpen && (
+                <AddressModal 
+                    onClose={() => setIsAddressModalOpen(false)}
+                    onSave={handleSaveAddress}
+                    addressToEdit={addressToEdit}
+                />
+            )}
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
                  <div className="flex justify-between items-center mb-8">
                     <div>
@@ -63,40 +110,71 @@ const CustomerAccount: React.FC = () => {
                     </a>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                     <StatCard title="کل سفارشات" value={stats.total} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>} />
-                     <StatCard title="سفارشات در حال انجام" value={stats.processing} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
-                     <StatCard title="سفارشات تکمیل شده" value={stats.completed} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
-                </div>
-                
-                <div>
-                     <h3 className="text-lg font-semibold text-gray-200 mb-4">تاریخچه سفارشات</h3>
-                     {orders.length === 0 ? (
-                        <div className="text-center py-16 bg-gray-800 rounded-lg border border-dashed border-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            <p className="mt-4 text-gray-400">شما تاکنون هیچ سفارشی ثبت نکرده‌اید.</p>
-                             <a href="#/" className="mt-4 inline-block bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-600 transition-colors">شروع خرید</a>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column - Orders */}
+                    <div className="lg:col-span-2 space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                             <StatCard title="کل سفارشات" value={stats.total} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>} />
+                             <StatCard title="سفارشات در حال انجام" value={stats.processing} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
+                             <StatCard title="سفارشات تکمیل شده" value={stats.completed} icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
                         </div>
-                    ) : (
-                       <div className="space-y-4">
-                            {orders.map(order => (
-                                <div key={order.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-gray-700/50 transition-colors">
-                                    <div className="flex-1">
-                                         <p className="font-mono text-sm text-teal-400">{order.id}</p>
-                                         <p className="text-xs text-gray-400 mt-1"> ثبت در {new Date(order.date).toLocaleDateString('fa-IR')}</p>
-                                    </div>
-                                    <div className="flex-1 text-right sm:text-center">
-                                         <p className="text-lg font-semibold">{order.totalAmount.toLocaleString('fa-IR')} <span className="text-sm font-normal text-gray-400">تومان</span></p>
-                                    </div>
-                                    <div className="w-full sm:w-auto sm:text-left mt-2 sm:mt-0">
-                                        <StatusBadge status={order.status} />
-                                    </div>
+                        
+                        <div>
+                             <h3 className="text-lg font-semibold text-gray-200 mb-4">تاریخچه سفارشات</h3>
+                             {orders.length === 0 ? (
+                                <div className="text-center py-16 bg-gray-800 rounded-lg border border-dashed border-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                    <p className="mt-4 text-gray-400">شما تاکنون هیچ سفارشی ثبت نکرده‌اید.</p>
+                                     <a href="#/" className="mt-4 inline-block bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-600 transition-colors">شروع خرید</a>
                                 </div>
-                            ))}
-                       </div>
-                    )}
+                            ) : (
+                               <div className="space-y-4">
+                                    {orders.map(order => (
+                                        <div key={order.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-gray-700/50 transition-colors">
+                                            <div className="flex-1">
+                                                 <p className="font-mono text-sm text-teal-400">{order.id}</p>
+                                                 <p className="text-xs text-gray-400 mt-1"> ثبت در {new Date(order.date).toLocaleDateString('fa-IR')}</p>
+                                            </div>
+                                            <div className="flex-1 text-right sm:text-center">
+                                                 <p className="text-lg font-semibold">{order.totalAmount.toLocaleString('fa-IR')} <span className="text-sm font-normal text-gray-400">تومان</span></p>
+                                            </div>
+                                            <div className="w-full sm:w-auto sm:text-left mt-2 sm:mt-0">
+                                                <StatusBadge status={order.status} />
+                                            </div>
+                                        </div>
+                                    ))}
+                               </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right Column - Addresses */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 sticky top-8">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-gray-200">آدرس‌های من</h3>
+                                <button onClick={handleOpenAddModal} className="text-sm bg-teal-500 text-white px-3 py-1 rounded-md hover:bg-teal-600 transition-colors">
+                                    افزودن
+                                </button>
+                            </div>
+                             {user?.addresses && user.addresses.length > 0 ? (
+                                <div className="space-y-4">
+                                    {user.addresses.map(addr => (
+                                        <div key={addr.id} className="border border-gray-600 p-3 rounded-md">
+                                            <p className="font-semibold text-gray-200">{addr.title}</p>
+                                            <p className="text-sm text-gray-400 mt-1">{addr.fullAddress}</p>
+                                            <div className="flex gap-2 mt-3 text-xs">
+                                                 <button onClick={() => handleOpenEditModal(addr)} className="text-yellow-400 hover:text-yellow-300">ویرایش</button>
+                                                 <button onClick={() => handleDeleteAddress(addr.id)} className="text-red-400 hover:text-red-300">حذف</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-500 text-center py-4">هنوز آدرسی ثبت نکرده‌اید.</p>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>

@@ -54,7 +54,8 @@ const CustomerPortal: React.FC = () => {
             const sheets = config.sided === 'double' ? Math.ceil(totalPages / 2) : totalPages;
             setNumberOfSheets(sheets);
 
-            const tiers = pricing.tiered[config.paperSize as PaperSize]?.[config.printQuality as PrintQuality];
+            // FIX: Cast paperSize and printQuality to exclude empty strings, which is safe due to the check above.
+            const tiers = pricing.tiered[config.paperSize as Exclude<PaperSize, ''>]?.[config.printQuality as Exclude<PrintQuality, ''>];
             if (!tiers) return;
 
             // Calculate price based on the total number of sheets across all series
@@ -63,7 +64,8 @@ const CustomerPortal: React.FC = () => {
             
             if (!tier) return;
             
-            const pricePerSheet = tier.prices[config.sided as Sided];
+            // FIX: Cast sided to exclude empty string, which is safe due to the check above.
+            const pricePerSheet = tier.prices[config.sided as Exclude<Sided, ''>];
             const printCostPerSeries = sheets * pricePerSheet;
             const printCost = printCostPerSeries * config.seriesCount;
             

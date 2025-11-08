@@ -1,12 +1,14 @@
 import { PaperSize, PrintQuality, Sided } from "./types";
 
-export const PAPER_SIZE_OPTIONS: { value: PaperSize; label: string }[] = [
+// FIX: Changed PaperSize to Exclude<PaperSize, ''> to represent only valid, selectable options.
+export const PAPER_SIZE_OPTIONS: { value: Exclude<PaperSize, ''>; label: string }[] = [
     { value: 'A3', label: 'A3' },
     { value: 'A4', label: 'A4' },
     { value: 'A5', label: 'A5' },
 ];
 
-export const PRINT_QUALITY_OPTIONS: { value: PrintQuality; label: string }[] = [
+// FIX: Changed PrintQuality to Exclude<PrintQuality, ''> to represent only valid, selectable options.
+export const PRINT_QUALITY_OPTIONS: { value: Exclude<PrintQuality, ''>; label: string }[] = [
     { value: 'bw', label: 'سیاه سفید' },
     { value: 'color-b', label: 'رنگی کلاس B (متن و عکس، بکگراند سفید)' },
     { value: 'color-c', label: 'رنگی کلاس C (فول رنگ)' },
@@ -52,7 +54,8 @@ interface PriceTier {
   };
 }
 
-export const DEFAULT_TIERED_PRICING: Record<PaperSize, Record<PrintQuality, PriceTier[]>> = {
+// FIX: Updated the type to exclude empty strings from PaperSize and PrintQuality, resolving the error about the missing '""' property.
+export const DEFAULT_TIERED_PRICING: Record<Exclude<PaperSize, ''>, Record<Exclude<PrintQuality, ''>, PriceTier[]>> = {
     A4: {
         'bw': [
             { min: 1, max: 499, prices: { single: 1500, double: 1900 } },

@@ -68,7 +68,8 @@ export const registerNewUser = async (phoneNumber: string, fullName: string): Pr
     const newUser: User = {
         phoneNumber,
         fullName,
-        role: ADMIN_PHONE_NUMBERS.includes(phoneNumber) ? 'admin' : 'customer'
+        role: ADMIN_PHONE_NUMBERS.includes(phoneNumber) ? 'admin' : 'customer',
+        addresses: [], // Initialize with an empty address list
     };
     saveUsersToDb([...allUsers, newUser]);
     
@@ -79,6 +80,28 @@ export const registerNewUser = async (phoneNumber: string, fullName: string): Pr
         console.error("Failed to save user to localStorage", error);
     }
     return newUser;
+};
+
+// Update user data in the DB and current session
+export const updateUserData = async (updatedUser: User): Promise<User> => {
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+    const allUsers = getUsersFromDb();
+    const userIndex = allUsers.findIndex(u => u.phoneNumber === updatedUser.phoneNumber);
+
+    if (userIndex !== -1) {
+        allUsers[userIndex] = updatedUser;
+        saveUsersToDb(allUsers);
+        
+        // Also update the currently logged-in user's session
+        const currentUser = getCurrentUser();
+        if (currentUser && currentUser.phoneNumber === updatedUser.phoneNumber) {
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+        }
+        
+        return updatedUser;
+    } else {
+        throw new Error("User not found for update");
+    }
 };
 
 

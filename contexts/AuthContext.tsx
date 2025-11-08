@@ -6,6 +6,7 @@ interface AuthContextType {
     user: User | null;
     login: (user: User) => void;
     logout: () => void;
+    updateUserData: (updatedUser: User) => Promise<void>;
     isLoading: boolean;
 }
 
@@ -39,7 +40,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const value = { user, login, logout, isLoading };
+    const updateUserData = async (updatedUser: User) => {
+        try {
+            const savedUser = await authService.updateUserData(updatedUser);
+            setUser(savedUser);
+        } catch (error) {
+            console.error("Failed to update user data:", error);
+            // Optionally handle error in UI
+        }
+    };
+
+
+    const value = { user, login, logout, updateUserData, isLoading };
 
     return (
         <AuthContext.Provider value={value}>
