@@ -26,9 +26,10 @@ interface FileUploadProps {
     setFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>;
     config: OrderConfig;
     setConfig: React.Dispatch<React.SetStateAction<OrderConfig>>;
+    isPrintOptionsSelected: boolean;
 }
 
-const FileUpload: React.FC<FileUploadProps> = ({ files, setFiles, config, setConfig }) => {
+const FileUpload: React.FC<FileUploadProps> = ({ files, setFiles, config, setConfig, isPrintOptionsSelected }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -135,7 +136,14 @@ const FileUpload: React.FC<FileUploadProps> = ({ files, setFiles, config, setCon
 
 
     return (
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 relative">
+             {!isPrintOptionsSelected && (
+                <div className="absolute inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center rounded-lg z-10 cursor-not-allowed">
+                    <p className="text-gray-300 font-semibold text-center px-4">
+                        لطفا ابتدا تنظیمات اصلی چاپ (سایز، رنگ و نوع چاپ) را در بخش ۱ مشخص کنید.
+                    </p>
+                </div>
+            )}
             <h3 className="text-lg font-semibold text-gray-100 border-b border-gray-600 pb-4 mb-6">۲. انتخاب و ارسال فایل</h3>
             
              <label className="block text-sm font-medium text-gray-400 mb-3">روش ارسال فایل</label>

@@ -120,6 +120,8 @@ const CustomerPortal: React.FC = () => {
         pageCountAvailable &&
         uploadMethodValid;
 
+    const isPrintOptionsSelected = !!config.paperSize && !!config.printQuality && !!config.sided;
+
     return (
         <div className="bg-gray-900 text-white min-h-screen font-sans">
             <Header />
@@ -128,7 +130,7 @@ const CustomerPortal: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                         <div className="lg:col-span-2 space-y-8">
                             <PrintOptions config={config} setConfig={setConfig} files={files} />
-                            <FileUpload files={files} setFiles={setFiles} config={config} setConfig={setConfig} />
+                            <FileUpload files={files} setFiles={setFiles} config={config} setConfig={setConfig} isPrintOptionsSelected={isPrintOptionsSelected} />
                         </div>
                         <div className="lg:col-span-1 space-y-8">
                             <AIAssistant onSuggestion={handleAISuggestion} />
