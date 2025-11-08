@@ -48,7 +48,10 @@ export type OrderStatus = 'completed' | 'processing' | 'cancelled' | 'new';
 
 export interface Order {
   id: string;
-  customerName: string; 
+  customer: {
+    phoneNumber: string;
+    fullName: string;
+  };
   date: string;
   totalAmount: number;
   status: OrderStatus;
@@ -58,5 +61,6 @@ export interface Order {
 // Types for Authentication
 export interface User {
   phoneNumber: string;
+  fullName: string;
   role: 'customer' | 'admin';
 }

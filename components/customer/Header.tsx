@@ -28,12 +28,12 @@ const Header: React.FC = () => {
                     <div className="flex items-center">
                         {user ? (
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2 text-gray-300">
+                                <a href="#/account" className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors">
                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                                     </svg>
-                                    <span className="font-medium">{user.phoneNumber}</span>
-                                </div>
+                                    <span className="font-medium">{user.fullName}</span>
+                                </a>
                                 <button
                                     onClick={logout}
                                     className="text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors text-sm"

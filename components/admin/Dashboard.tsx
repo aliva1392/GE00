@@ -78,7 +78,7 @@ const Dashboard: React.FC = () => {
                                 orders.slice(0, 10).map(order => ( // Show latest 10 orders
                                     <tr key={order.id} onClick={() => navigateToOrder(order.id)} className="hover:bg-gray-50 cursor-pointer">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.customerName}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.customer.fullName}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.date).toLocaleDateString('fa-IR')}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.totalAmount.toLocaleString('fa-IR')} تومان</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

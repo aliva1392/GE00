@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CartItem, Order } from '../../types';
 import { PAPER_SIZE_OPTIONS, PRINT_QUALITY_OPTIONS } from '../../constants';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface CartSummaryProps {
     items: CartItem[];
@@ -11,9 +12,16 @@ interface CartSummaryProps {
 const CartSummary: React.FC<CartSummaryProps> = ({ items, onRemoveItem, onClearCart }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
+    const { user } = useAuth();
     const totalCartCost = items.reduce((sum, item) => sum + item.costs.totalCost, 0);
 
     const handleFinalSubmit = () => {
+        if (!user) {
+            alert('برای ثبت نهایی سفارش، لطفا ابتدا وارد حساب کاربری خود شوید.');
+            window.location.hash = '#/login';
+            return;
+        }
+
         setIsSubmitting(true);
         setSubmitSuccess(false);
 
@@ -22,7 +30,10 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items, onRemoveItem, onClearC
             try {
                 const newOrder: Order = {
                     id: `ORD-${Date.now()}`,
-                    customerName: 'کاربر آنلاین', // This would come from user auth in a real app
+                    customer: {
+                        phoneNumber: user.phoneNumber,
+                        fullName: user.fullName
+                    },
                     date: new Date().toISOString(),
                     totalAmount: totalCartCost,
                     status: 'new',
@@ -53,7 +64,8 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items, onRemoveItem, onClearC
             {submitSuccess && (
                  <div className="px-6 py-10 text-center bg-green-900/50 border border-green-700 rounded-lg">
                     <h4 className="text-lg font-bold text-green-300">سفارش شما با موفقیت ثبت شد!</h4>
-                    <p className="text-green-400 mt-2">می‌توانید وضعیت سفارش را از پنل مدیریت پیگیری کنید.</p>
+                    <p className="text-green-400 mt-2">می‌توانید وضعیت سفارش را از پنل کاربری خود پیگیری کنید.</p>
+                     <a href="#/account" className="mt-4 inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">مشاهده سفارشات</a>
                 </div>
             )}
             {!submitSuccess && items.length === 0 ? (

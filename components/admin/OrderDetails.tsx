@@ -72,9 +72,11 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ orderId }) => {
                 <div className="flex justify-between items-start">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-800">سفارش {order.id}</h2>
-                        <p className="text-sm text-gray-500 mt-1">
-                            ثبت شده در {new Date(order.date).toLocaleString('fa-IR')}
-                        </p>
+                        <div className="text-sm text-gray-500 mt-2 space-y-1">
+                            <p>مشتری: <strong className="text-gray-700">{order.customer.fullName}</strong></p>
+                            <p>شماره تماس: <span className="text-gray-700">{order.customer.phoneNumber}</span></p>
+                            <p>تاریخ ثبت: {new Date(order.date).toLocaleString('fa-IR')}</p>
+                        </div>
                     </div>
                     <div className="flex flex-col items-end">
                         <StatusBadge status={order.status} />

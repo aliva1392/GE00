@@ -4,9 +4,10 @@ import Sidebar from '../components/admin/Sidebar';
 import Dashboard from '../components/admin/Dashboard';
 import OrderDetails from '../components/admin/OrderDetails';
 import PriceManagement from '../components/admin/PriceManagement';
+import UserManagement from '../components/admin/UserManagement';
 
 const AdminPortal: React.FC = () => {
-    const [view, setView] = useState<{ page: 'dashboard' | 'order' | 'prices'; id?: string }>({ page: 'dashboard' });
+    const [view, setView] = useState<{ page: 'dashboard' | 'order' | 'prices' | 'users'; id?: string }>({ page: 'dashboard' });
     const [pageTitle, setPageTitle] = useState('داشبورد');
 
     useEffect(() => {
@@ -20,6 +21,9 @@ const AdminPortal: React.FC = () => {
             } else if (hash === '#/admin/prices') {
                  setView({ page: 'prices' });
                  setPageTitle('مدیریت قیمت‌ها');
+            } else if (hash === '#/admin/users') {
+                 setView({ page: 'users' });
+                 setPageTitle('مدیریت کاربران');
             }
             else {
                 setView({ page: 'dashboard' });
@@ -41,6 +45,8 @@ const AdminPortal: React.FC = () => {
                 return view.id ? <OrderDetails orderId={view.id} /> : <Dashboard />;
             case 'prices':
                 return <PriceManagement />;
+            case 'users':
+                return <UserManagement />;
             case 'dashboard':
             default:
                 return <Dashboard />;

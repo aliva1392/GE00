@@ -2,6 +2,7 @@ import React from 'react';
 import CustomerPortal from './pages/CustomerPortal';
 import AdminPortal from './pages/AdminPortal';
 import LoginPage from './pages/LoginPage';
+import CustomerAccount from './pages/CustomerAccount';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const AppRouter: React.FC = () => {
@@ -51,6 +52,15 @@ const AppRouter: React.FC = () => {
         }
         return <LoginPage portal="customer" />;
     }
+
+    if (route === '#/account') {
+        if (!user) {
+            window.location.hash = '#/login';
+            return null;
+        }
+        return <CustomerAccount />;
+    }
+
 
     return <CustomerPortal />;
 };

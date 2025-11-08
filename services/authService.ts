@@ -3,6 +3,28 @@ import { User } from '../types';
 const ADMIN_PHONE_NUMBERS = ['09123456789'];
 const MOCK_OTP = '123456';
 const USER_STORAGE_KEY = 'printShopUser';
+const USERS_DB_KEY = 'printShopUsers';
+
+// Helper to get all users from the simulated DB
+const getUsersFromDb = (): User[] => {
+    try {
+        const usersJson = localStorage.getItem(USERS_DB_KEY);
+        return usersJson ? JSON.parse(usersJson) : [];
+    } catch (e) {
+        console.error("Failed to parse users from DB", e);
+        return [];
+    }
+};
+
+// Helper to save all users to the simulated DB
+const saveUsersToDb = (users: User[]): void => {
+    try {
+        localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+    } catch (e) {
+        console.error("Failed to save users", e);
+    }
+};
+
 
 // Simulate sending an OTP. In a real app, this would call an SMS gateway API.
 export const sendOtp = async (phoneNumber: string): Promise<void> => {
@@ -14,31 +36,58 @@ export const sendOtp = async (phoneNumber: string): Promise<void> => {
 };
 
 // Simulate verifying the OTP.
-export const verifyOtp = async (phoneNumber: string, otp: string): Promise<User | null> => {
+export const verifyOtp = async (phoneNumber: string, otp: string): Promise<{ user: User | null, isNew: boolean }> => {
     console.log(`Verifying OTP for ${phoneNumber}...`);
     await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
 
     if (otp === MOCK_OTP) {
-        const user: User = {
-            phoneNumber,
-            role: ADMIN_PHONE_NUMBERS.includes(phoneNumber) ? 'admin' : 'customer',
-        };
-        try {
-            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-        } catch (error) {
-            console.error("Failed to save user to localStorage", error);
+        const allUsers = getUsersFromDb();
+        const existingUser = allUsers.find(u => u.phoneNumber === phoneNumber);
+
+        if (existingUser) {
+            // User exists, log them in
+            try {
+                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(existingUser));
+            } catch (error) {
+                console.error("Failed to save user to localStorage", error);
+            }
+            return { user: existingUser, isNew: false };
+        } else {
+            // User does not exist, signal to UI to register
+            return { user: null, isNew: true };
         }
-        return user;
     }
 
-    return null;
+    return { user: null, isNew: false };
 };
+
+// Register a new user and log them in
+export const registerNewUser = async (phoneNumber: string, fullName: string): Promise<User> => {
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    const allUsers = getUsersFromDb();
+    const newUser: User = {
+        phoneNumber,
+        fullName,
+        role: ADMIN_PHONE_NUMBERS.includes(phoneNumber) ? 'admin' : 'customer'
+    };
+    saveUsersToDb([...allUsers, newUser]);
+    
+    // Log the new user in
+    try {
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
+    } catch (error) {
+        console.error("Failed to save user to localStorage", error);
+    }
+    return newUser;
+};
+
 
 // Log out the user by clearing storage.
 export const logout = (): void => {
     try {
         localStorage.removeItem(USER_STORAGE_KEY);
-    } catch (error) {
+    } catch (error)
+    {
         console.error("Failed to remove user from localStorage", error);
     }
 };
@@ -52,4 +101,10 @@ export const getCurrentUser = (): User | null => {
         console.error("Failed to get user from localStorage", error);
         return null;
     }
+};
+
+
+// Get all users for admin panel
+export const getAllUsers = (): User[] => {
+    return getUsersFromDb();
 };
