@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '../../types';
+import { getAllOrders } from '../../services/orderService';
 
 const StatusBadge: React.FC<{ status: OrderStatus }> = ({ status }) => {
     const statusStyles = {
@@ -16,14 +17,7 @@ const Dashboard: React.FC = () => {
     const [orders, setOrders] = useState<Order[]>([]);
 
     useEffect(() => {
-        try {
-            const savedOrders = localStorage.getItem('printShopOrders');
-            if (savedOrders) {
-                setOrders(JSON.parse(savedOrders));
-            }
-        } catch (error) {
-            console.error("Failed to load orders from localStorage", error);
-        }
+        setOrders(getAllOrders());
     }, []);
     
     const navigateToOrder = (orderId: string) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Order, CartItem, OrderStatus } from '../../types';
+import { Order, OrderStatus, DeliveryMethod } from '../../types';
 import { PAPER_SIZE_OPTIONS, PRINT_QUALITY_OPTIONS } from '../../constants';
+import { getOrderById, updateOrderStatus } from '../../services/orderService';
 
 interface OrderDetailsProps {
     orderId: string;
@@ -21,6 +22,15 @@ const getLabel = (options: { value: string, label: string }[], value: string) =>
     return options.find(opt => opt.value === value)?.label || value;
 }
 
+const getDeliveryMethodLabel = (method: DeliveryMethod) => {
+    switch(method) {
+        case 'pickup': return 'تحویل حضوری';
+        case 'courier': return 'ارسال با پیک';
+        case 'post': return 'ارسال با پست';
+        default: return 'نامشخص';
+    }
+}
+
 const OrderDetails: React.FC<OrderDetailsProps> = ({ orderId }) => {
     const [order, setOrder] = useState<Order | null>(null);
     const [status, setStatus] = useState<OrderStatus | ''>('');
@@ -28,38 +38,30 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ orderId }) => {
     const [saveSuccess, setSaveSuccess] = useState(false);
 
     useEffect(() => {
-        try {
-            const savedOrders: Order[] = JSON.parse(localStorage.getItem('printShopOrders') || '[]');
-            const currentOrder = savedOrders.find(o => o.id === orderId);
-            if (currentOrder) {
-                setOrder(currentOrder);
-                setStatus(currentOrder.status);
-            }
-        } catch (error) {
-            console.error("Failed to load order:", error);
+        const currentOrder = getOrderById(orderId);
+        if (currentOrder) {
+            setOrder(currentOrder);
+            setStatus(currentOrder.status);
         }
     }, [orderId]);
 
-    const handleStatusUpdate = () => {
+    const handleStatusUpdate = async () => {
         if (!order || !status) return;
 
         setIsSaving(true);
         setSaveSuccess(false);
 
-        setTimeout(() => { // Simulate API call
-            try {
-                const savedOrders: Order[] = JSON.parse(localStorage.getItem('printShopOrders') || '[]');
-                const updatedOrders = savedOrders.map(o => o.id === orderId ? { ...o, status: status } : o);
-                localStorage.setItem('printShopOrders', JSON.stringify(updatedOrders));
-                setOrder(prev => prev ? { ...prev, status: status } : null);
-                setSaveSuccess(true);
-            } catch (error) {
-                console.error("Failed to update status:", error);
-            } finally {
-                setIsSaving(false);
-                setTimeout(() => setSaveSuccess(false), 3000);
-            }
-        }, 1000);
+        try {
+            await updateOrderStatus(orderId, status);
+            setOrder(prev => prev ? { ...prev, status: status } : null);
+            setSaveSuccess(true);
+        } catch (error) {
+            console.error("Failed to update status:", error);
+            alert('خطا در به‌روزرسانی وضعیت.');
+        } finally {
+            setIsSaving(false);
+            setTimeout(() => setSaveSuccess(false), 3000);
+        }
     };
 
     if (!order) {
@@ -105,6 +107,15 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ orderId }) => {
                     </button>
                     {saveSuccess && <span className="text-sm text-green-600">وضعیت با موفقیت به‌روز شد.</span>}
                 </div>
+                 {order.delivery && (
+                    <div className="mt-6 border-t pt-4">
+                        <h3 className="text-md font-semibold text-gray-800">اطلاعات ارسال</h3>
+                        <div className="text-sm text-gray-600 mt-2">
+                            <p><strong>روش ارسال:</strong> {getDeliveryMethodLabel(order.delivery.method)}</p>
+                            {order.delivery.address && <p className="mt-1"><strong>آدرس:</strong> {order.delivery.address}</p>}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-md">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/customer/Header';
 import { useAuth } from '../contexts/AuthContext';
 import { Order, OrderStatus } from '../types';
+import { getOrdersForUser } from '../services/orderService';
 
 const StatusBadge: React.FC<{ status: OrderStatus }> = ({ status }) => {
     const statusStyles = {
@@ -34,20 +35,14 @@ const CustomerAccount: React.FC = () => {
 
     useEffect(() => {
         if (user) {
-            try {
-                const allOrders: Order[] = JSON.parse(localStorage.getItem('printShopOrders') || '[]');
-                const userOrders = allOrders.filter(order => order.customer.phoneNumber === user.phoneNumber);
-                setOrders(userOrders);
-                
-                setStats({
-                    total: userOrders.length,
-                    processing: userOrders.filter(o => o.status === 'processing' || o.status === 'new').length,
-                    completed: userOrders.filter(o => o.status === 'completed').length
-                });
-
-            } catch (error) {
-                console.error("Failed to load orders:", error);
-            }
+            const userOrders = getOrdersForUser(user.phoneNumber);
+            setOrders(userOrders);
+            
+            setStats({
+                total: userOrders.length,
+                processing: userOrders.filter(o => o.status === 'processing' || o.status === 'new').length,
+                completed: userOrders.filter(o => o.status === 'completed').length
+            });
         }
     }, [user]);
 

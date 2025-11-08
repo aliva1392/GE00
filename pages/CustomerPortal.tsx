@@ -5,7 +5,8 @@ import FileUpload from '../components/customer/FileUpload';
 import OrderSummary from '../components/customer/OrderSummary';
 import CartSummary from '../components/customer/CartSummary';
 import AIAssistant from '../components/customer/AIAssistant';
-import { OrderConfig, UploadedFile, CartItem, PaperSize, PrintQuality, Sided } from '../types';
+import DeliveryOptionsModal from '../components/customer/DeliveryOptionsModal';
+import { OrderConfig, UploadedFile, CartItem, PaperSize, PrintQuality, Sided, Order } from '../types';
 import { getPricingConfig } from '../services/pricingService';
 
 const initialConfig: OrderConfig = {
@@ -29,6 +30,8 @@ const CustomerPortal: React.FC = () => {
     const [costs, setCosts] = useState({ printCost: 0, serviceCost: 0, totalCost: 0, pricePerSheet: 0 });
     const [numberOfSheets, setNumberOfSheets] = useState(0);
     const [pricing, setPricing] = useState(getPricingConfig());
+    const [orderForDelivery, setOrderForDelivery] = useState<Order | null>(null);
+    const [showFinalSuccess, setShowFinalSuccess] = useState(false);
 
     useEffect(() => {
         const calculateCosts = () => {
@@ -104,9 +107,16 @@ const CustomerPortal: React.FC = () => {
         setCartItems(prev => prev.filter(item => item.id !== id));
     };
     
-    const clearCart = () => {
-        setCartItems([]);
-    }
+    const handleOrderSubmitted = (order: Order) => {
+        setCartItems([]); // Clear cart
+        setOrderForDelivery(order); // Open delivery modal
+    };
+    
+    const handleDeliveryModalClose = () => {
+        setOrderForDelivery(null);
+        setShowFinalSuccess(true);
+        setTimeout(() => setShowFinalSuccess(false), 5000); // Hide message after 5s
+    };
 
     const pageCountAvailable = files.length > 0 || config.manualPageCount > 0;
     const uploadMethodValid =
@@ -127,7 +137,20 @@ const CustomerPortal: React.FC = () => {
         <div className="bg-gray-900 text-white min-h-screen font-sans">
             <Header />
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                 {orderForDelivery && (
+                    <DeliveryOptionsModal
+                        order={orderForDelivery}
+                        onClose={handleDeliveryModalClose}
+                    />
+                )}
                 <div className="space-y-8">
+                     {showFinalSuccess && (
+                        <div className="px-6 py-4 text-center bg-green-900/50 border border-green-700 rounded-lg mb-8">
+                            <h4 className="text-lg font-bold text-green-300">سفارش شما با موفقیت ثبت و تکمیل شد!</h4>
+                            <p className="text-green-400 mt-2">می‌توانید وضعیت سفارش را از پنل کاربری خود پیگیری کنید.</p>
+                            <a href="#/account" className="mt-4 inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">مشاهده سفارشات</a>
+                        </div>
+                    )}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                         <div className="lg:col-span-2 space-y-8">
                             <PrintOptions config={config} setConfig={setConfig} files={files} />
@@ -146,7 +169,7 @@ const CustomerPortal: React.FC = () => {
                     </div>
 
                     {cartItems.length > 0 && (
-                        <CartSummary items={cartItems} onRemoveItem={removeFromCart} onClearCart={clearCart} />
+                        <CartSummary items={cartItems} onRemoveItem={removeFromCart} onOrderSubmitted={handleOrderSubmitted} />
                     )}
                 </div>
             </main>

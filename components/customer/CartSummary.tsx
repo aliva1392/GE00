@@ -2,20 +2,20 @@ import React, { useState } from 'react';
 import { CartItem, Order } from '../../types';
 import { PAPER_SIZE_OPTIONS, PRINT_QUALITY_OPTIONS } from '../../constants';
 import { useAuth } from '../../contexts/AuthContext';
+import { createOrder } from '../../services/orderService';
 
 interface CartSummaryProps {
     items: CartItem[];
     onRemoveItem: (id: string) => void;
-    onClearCart: () => void;
+    onOrderSubmitted: (order: Order) => void;
 }
 
-const CartSummary: React.FC<CartSummaryProps> = ({ items, onRemoveItem, onClearCart }) => {
+const CartSummary: React.FC<CartSummaryProps> = ({ items, onRemoveItem, onOrderSubmitted }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitSuccess, setSubmitSuccess] = useState(false);
     const { user } = useAuth();
     const totalCartCost = items.reduce((sum, item) => sum + item.costs.totalCost, 0);
 
-    const handleFinalSubmit = () => {
+    const handleFinalSubmit = async () => {
         if (!user) {
             alert('برای ثبت نهایی سفارش، لطفا ابتدا وارد حساب کاربری خود شوید.');
             window.location.hash = '#/login';
@@ -23,35 +23,16 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items, onRemoveItem, onClearC
         }
 
         setIsSubmitting(true);
-        setSubmitSuccess(false);
 
-        // Simulate API call
-        setTimeout(() => {
-            try {
-                const newOrder: Order = {
-                    id: `ORD-${Date.now()}`,
-                    customer: {
-                        phoneNumber: user.phoneNumber,
-                        fullName: user.fullName
-                    },
-                    date: new Date().toISOString(),
-                    totalAmount: totalCartCost,
-                    status: 'new',
-                    items: items,
-                };
-                
-                const existingOrders: Order[] = JSON.parse(localStorage.getItem('printShopOrders') || '[]');
-                localStorage.setItem('printShopOrders', JSON.stringify([newOrder, ...existingOrders]));
-
-                setSubmitSuccess(true);
-                onClearCart();
-            } catch (error) {
-                console.error("Failed to save order:", error);
-                alert('خطا در ثبت سفارش. لطفا دوباره تلاش کنید.');
-            } finally {
-                setIsSubmitting(false);
-            }
-        }, 1500);
+        try {
+            const newOrder = await createOrder(items, user, totalCartCost);
+            onOrderSubmitted(newOrder);
+        } catch (error) {
+            console.error("Failed to save order:", error);
+            alert('خطا در ثبت سفارش. لطفا دوباره تلاش کنید.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
     const getLabel = (options: {value: string, label: string}[], value: string) => {
@@ -61,18 +42,11 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items, onRemoveItem, onClearC
     return (
         <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
             <h3 className="text-lg font-semibold text-gray-100 border-b border-gray-600 pb-4 mb-4">سبد خرید</h3>
-            {submitSuccess && (
-                 <div className="px-6 py-10 text-center bg-green-900/50 border border-green-700 rounded-lg">
-                    <h4 className="text-lg font-bold text-green-300">سفارش شما با موفقیت ثبت شد!</h4>
-                    <p className="text-green-400 mt-2">می‌توانید وضعیت سفارش را از پنل کاربری خود پیگیری کنید.</p>
-                     <a href="#/account" className="mt-4 inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">مشاهده سفارشات</a>
-                </div>
-            )}
-            {!submitSuccess && items.length === 0 ? (
+            {items.length === 0 ? (
                 <div className="px-6 py-10 text-center text-gray-500">
                     سبد خرید شما خالی است.
                 </div>
-            ) : !submitSuccess && (
+            ) : (
                 <>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-right text-gray-400">

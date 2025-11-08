@@ -45,6 +45,12 @@ export interface CartItem {
 
 // Types for Admin Portal
 export type OrderStatus = 'completed' | 'processing' | 'cancelled' | 'new';
+export type DeliveryMethod = 'pickup' | 'courier' | 'post';
+
+export interface DeliveryInfo {
+  method: DeliveryMethod;
+  address?: string;
+}
 
 export interface Order {
   id: string;
@@ -56,6 +62,7 @@ export interface Order {
   totalAmount: number;
   status: OrderStatus;
   items: CartItem[];
+  delivery?: DeliveryInfo;
 }
 
 // Types for Authentication
