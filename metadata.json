@@ -1,5 +1,6 @@
 {
   "name": "چاپینو",
   "description": "اپلیکیشن سفارش چاپ آنلاین برای مشتریان به همراه پنل مدیریت.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": []
 }
